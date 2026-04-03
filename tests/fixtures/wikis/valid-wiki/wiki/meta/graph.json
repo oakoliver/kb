@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "nodes": {
+    "wiki/concepts/attention-mechanism.md": {
+      "dependsOn": [
+        "raw/articles/attention-mechanism.md"
+      ],
+      "dependents": [
+        "wiki/entities/transformer.md"
+      ]
+    },
+    "wiki/entities/transformer.md": {
+      "dependsOn": [
+        "raw/papers/transformer-paper.md"
+      ],
+      "dependents": []
+    }
+  }
+}

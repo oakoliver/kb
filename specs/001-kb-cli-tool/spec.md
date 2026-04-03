@@ -143,6 +143,7 @@ A user wants to move a particularly valuable query response into the permanent w
 ### Edge Cases
 
 - What happens when LLM API key is missing? System shows clear error with instructions to set `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`
+- What happens when LLM API call fails mid-operation (rate limit, timeout, network error)? System fails immediately with clear error message and produces no partial output; user must retry the full operation
 - How does system handle network failures during URL ingestion? Graceful error with retry suggestion
 - What happens with malformed source files (invalid markdown, corrupted PDF)? Skip with warning, continue with valid sources
 - How does system handle very large wikis (1000+ articles)? Incremental compilation and efficient indexing prevent performance degradation
@@ -206,6 +207,7 @@ A user wants to move a particularly valuable query response into the permanent w
 - **FR-039**: System MUST support Anthropic API via `ANTHROPIC_API_KEY` environment variable
 - **FR-040**: System MUST support OpenAI API via `OPENAI_API_KEY` environment variable
 - **FR-041**: System MUST allow configurable model selection in `.kb/config.json`
+- **FR-042**: System MUST fail immediately on LLM API errors (rate limit, timeout, network failure) with clear error message and no partial output
 
 ### Key Entities
 
@@ -229,6 +231,12 @@ A user wants to move a particularly valuable query response into the permanent w
 - **SC-008**: Second compilation with no changes produces zero file modifications (idempotent)
 - **SC-009**: System handles wikis with 1000+ articles without performance degradation
 - **SC-010**: Exit codes are correct for scripting: 0 for success, 1 for failures/no results, non-zero for errors
+
+## Clarifications
+
+### Session 2026-04-03
+
+- Q: When an LLM API call fails during `kb compile` or `kb query` (e.g., rate limit, timeout, network error mid-stream), what should the system do? → A: Fail immediately with clear error message and no partial output
 
 ## Assumptions
 

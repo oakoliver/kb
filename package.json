@@ -1,0 +1,60 @@
+{
+  "name": "@oakoliver/kb",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "CLI tool for LLM-compiled knowledge bases",
+  "author": "oakoliver",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oakoliver/kb"
+  },
+  "homepage": "https://github.com/oakoliver/kb#readme",
+  "bugs": {
+    "url": "https://github.com/oakoliver/kb/issues"
+  },
+  "keywords": [
+    "cli",
+    "knowledge-base",
+    "llm",
+    "obsidian",
+    "wiki",
+    "bm25",
+    "search",
+    "rag",
+    "ai",
+    "markdown",
+    "wikilinks",
+    "tui",
+    "bun",
+    "typescript"
+  ],
+  "bin": {
+    "kb": "./src/cli.ts"
+  },
+  "files": [
+    "src",
+    "dist"
+  ],
+  "scripts": {
+    "dev": "bun run ./src/cli.ts",
+    "test": "bun test",
+    "build": "bun build --compile ./src/cli.ts --outfile ./dist/kb",
+    "lint": "bun run tsc --noEmit"
+  },
+  "dependencies": {
+    "@oakoliver/bubbles": "^1.0.3",
+    "@oakoliver/glamour": "^1.0.1",
+    "@oakoliver/huh": "^1.0.1",
+    "@oakoliver/lipgloss": "^1.0.2",
+    "bm25s": "^1.0.1",
+    "pageindex": "^1.0.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.0"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}

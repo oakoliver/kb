@@ -1,0 +1,36 @@
+# Spec-Kit
+.specify/extensions/*/
+.specify/presets/*/
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Bun
+bun.lockb
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Knowledge base directories (created by kb init)
+.kb/
+
+# Test artifacts
+coverage/
+*.log
+
+# Temporary files
+*.tmp
+*.swp

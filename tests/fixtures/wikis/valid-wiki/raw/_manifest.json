@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "path": "articles/attention-mechanism.md",
+      "sourceUrl": "https://example.com/attention",
+      "title": "Attention Mechanism",
+      "dateAdded": "2026-04-01T10:00:00Z",
+      "hash": "abc123def456",
+      "type": "article"
+    },
+    {
+      "path": "papers/transformer-paper.md",
+      "sourceUrl": "https://arxiv.org/abs/1234.5678",
+      "title": "Transformer Architecture",
+      "dateAdded": "2026-04-02T14:30:00Z",
+      "hash": "789ghi012jkl",
+      "type": "paper"
+    }
+  ]
+}
