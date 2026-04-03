@@ -33,8 +33,7 @@
     "kb": "./src/cli.ts"
   },
   "files": [
-    "src",
-    "dist"
+    "src"
   ],
   "scripts": {
     "dev": "bun run ./src/cli.ts",
