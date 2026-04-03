@@ -1,6 +1,6 @@
 {
   "name": "@oakoliver/kb",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "CLI tool for LLM-compiled knowledge bases",
   "author": "oakoliver",
@@ -33,7 +33,8 @@
     "kb": "./src/cli.ts"
   },
   "files": [
-    "src"
+    "src",
+    "README.md"
   ],
   "scripts": {
     "dev": "bun run ./src/cli.ts",
