@@ -9,13 +9,14 @@ import { z } from 'zod';
 // Config Schema (.kb/config.json)
 // =============================================================================
 
-export const LLMProviderSchema = z.enum(['anthropic', 'openai']);
+export const LLMProviderSchema = z.enum(['anthropic', 'openai', 'lmstudio']);
 
 export const ConfigSchema = z.object({
   version: z.literal(1),
   llm: z.object({
     provider: LLMProviderSchema,
     model: z.string().default('claude-sonnet-4-20250514'),
+    baseUrl: z.string().url().optional(),
   }),
   wiki: z.object({
     name: z.string().optional(),
@@ -94,16 +95,28 @@ export type Graph = z.infer<typeof GraphSchema>;
  * Create a default config object
  */
 export function createDefaultConfig(provider: LLMProvider = 'anthropic'): Config {
-  return {
+  const modelMap: Record<LLMProvider, string> = {
+    anthropic: 'claude-sonnet-4-20250514',
+    openai: 'gpt-4o',
+    lmstudio: 'qwen/qwen3.5-9b',
+  };
+
+  const config: Config = {
     version: 1,
     llm: {
       provider,
-      model: provider === 'anthropic' ? 'claude-sonnet-4-20250514' : 'gpt-4o',
+      model: modelMap[provider] || 'gpt-4o',
     },
     wiki: {
       linkStyle: 'wikilink',
     },
   };
+
+  if (provider === 'lmstudio') {
+    config.llm.baseUrl = 'http://localhost:1234/v1';
+  }
+
+  return config;
 }
 
 /**

@@ -181,7 +181,7 @@ export async function compile(ctx: CommandContext): Promise<number> {
   }
 
   // Create LLM provider
-  const provider = createProviderFromEnv(config.llm.provider, config.llm.model);
+  const provider = createProviderFromEnv(config.llm.provider, config.llm.model, config.llm.baseUrl);
 
   const created: string[] = [];
   const updated: string[] = [];

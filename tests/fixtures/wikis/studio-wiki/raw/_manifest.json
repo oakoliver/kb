@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "path": "articles/attention-mechanism.md",
+      "sourceUrl": "https://example.com/attention",
+      "title": "Attention Mechanism",
+      "dateAdded": "2026-04-01T10:00:00Z",
+      "hash": "abc123def456",
+      "type": "article"
+    },
+    {
+      "path": "articles/transformer-paper.md",
+      "sourceUrl": "https://arxiv.org/abs/1706.03762",
+      "title": "Attention Is All You Need",
+      "dateAdded": "2026-04-01T11:00:00Z",
+      "hash": "def456ghi789",
+      "type": "paper"
+    },
+    {
+      "path": "articles/bert-notes.md",
+      "title": "BERT Notes",
+      "dateAdded": "2026-04-02T09:00:00Z",
+      "hash": "ghi789jkl012",
+      "type": "article"
+    }
+  ]
+}

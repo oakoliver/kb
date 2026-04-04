@@ -441,18 +441,197 @@ export class OpenAIProvider implements LLMProvider {
 }
 
 // =============================================================================
+// LM Studio Provider (OpenAI-compatible, local)
+// =============================================================================
+
+const LMSTUDIO_DEFAULT_URL = 'http://localhost:1234/v1/chat/completions';
+
+export class LMStudioProvider implements LLMProvider {
+  readonly name: ProviderType = 'lmstudio';
+  private baseUrl: string;
+
+  constructor(
+    public readonly model: string = 'qwen/qwen3.5-9b',
+    baseUrl?: string
+  ) {
+    const base = baseUrl || 'http://localhost:1234/v1';
+    this.baseUrl = base.endsWith('/chat/completions') ? base : `${base}/chat/completions`;
+  }
+
+  async *stream(request: LLMRequest): AsyncGenerator<LLMStreamDelta> {
+    const messages = this.formatMessages(request);
+
+    const response = await fetch(this.baseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: this.model,
+        max_tokens: request.maxTokens ?? 4096,
+        temperature: request.temperature ?? 0.7,
+        messages,
+        stop: request.stopSequences,
+        stream: true,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      let message: string;
+      try {
+        const parsed = JSON.parse(errorBody);
+        message = parsed.error?.message || errorBody;
+      } catch {
+        message = errorBody;
+      }
+      throw LLMError.fromStatusCode(response.status, message);
+    }
+
+    if (!response.body) {
+      throw new LLMError(500, 'server_error', 'No response body', false);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6);
+          if (data === '[DONE]') {
+            yield { type: 'stop', stopReason: 'end_turn' };
+            continue;
+          }
+
+          try {
+            const event = JSON.parse(data);
+            const delta = event.choices?.[0]?.delta;
+            const finishReason = event.choices?.[0]?.finish_reason;
+
+            if (delta?.content) {
+              yield { type: 'text', text: delta.content };
+            }
+
+            if (finishReason) {
+              yield {
+                type: 'stop',
+                stopReason: this.mapStopReason(finishReason),
+              };
+            }
+          } catch (parseErr) {
+            // Ignore JSON parse errors for non-event lines
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  }
+
+  async complete(request: LLMRequest): Promise<LLMResponse> {
+    const messages = this.formatMessages(request);
+
+    const response = await fetch(this.baseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: this.model,
+        max_tokens: request.maxTokens ?? 4096,
+        temperature: request.temperature ?? 0.7,
+        messages,
+        stop: request.stopSequences,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      let message: string;
+      try {
+        const parsed = JSON.parse(errorBody);
+        message = parsed.error?.message || errorBody;
+      } catch {
+        message = errorBody;
+      }
+      throw LLMError.fromStatusCode(response.status, message);
+    }
+
+    const result = (await response.json()) as {
+      choices?: Array<{
+        message?: { content?: string };
+        finish_reason?: string;
+      }>;
+      usage?: { prompt_tokens?: number; completion_tokens?: number };
+    };
+    const choice = result.choices?.[0];
+
+    return {
+      content: choice?.message?.content || '',
+      stopReason: this.mapStopReason(choice?.finish_reason || ''),
+      usage: {
+        inputTokens: result.usage?.prompt_tokens || 0,
+        outputTokens: result.usage?.completion_tokens || 0,
+      },
+    };
+  }
+
+  private formatMessages(request: LLMRequest): Array<{ role: string; content: string }> {
+    const messages: Array<{ role: string; content: string }> = [];
+
+    if (request.systemPrompt) {
+      messages.push({ role: 'system', content: request.systemPrompt });
+    }
+
+    for (const msg of request.messages) {
+      if (msg.role === 'system' && request.systemPrompt) {
+        continue;
+      }
+      messages.push({ role: msg.role, content: msg.content });
+    }
+
+    return messages;
+  }
+
+  private mapStopReason(reason: string): 'end_turn' | 'max_tokens' | 'stop_sequence' {
+    switch (reason) {
+      case 'stop':
+        return 'end_turn';
+      case 'length':
+        return 'max_tokens';
+      case 'content_filter':
+        return 'stop_sequence';
+      default:
+        return 'end_turn';
+    }
+  }
+}
+
+// =============================================================================
 // Factory
 // =============================================================================
 
 /**
  * Create an LLM provider based on configuration
  */
-export function createProvider(provider: ProviderType, apiKey: string, model?: string): LLMProvider {
+export function createProvider(provider: ProviderType, apiKey: string, model?: string, baseUrl?: string): LLMProvider {
   switch (provider) {
     case 'anthropic':
       return new AnthropicProvider(apiKey, model);
     case 'openai':
       return new OpenAIProvider(apiKey, model);
+    case 'lmstudio':
+      return new LMStudioProvider(model, baseUrl);
     default:
       throw new Error(`Unknown provider: ${provider}`);
   }
@@ -461,7 +640,11 @@ export function createProvider(provider: ProviderType, apiKey: string, model?: s
 /**
  * Create provider from environment and config
  */
-export function createProviderFromEnv(provider: ProviderType, model?: string): LLMProvider {
+export function createProviderFromEnv(provider: ProviderType, model?: string, baseUrl?: string): LLMProvider {
+  if (provider === 'lmstudio') {
+    return new LMStudioProvider(model, baseUrl);
+  }
+
   const apiKey = provider === 'anthropic' ? process.env.ANTHROPIC_API_KEY : process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
@@ -469,5 +652,5 @@ export function createProviderFromEnv(provider: ProviderType, model?: string): L
     throw new Error(`Missing API key. Set the ${envVar} environment variable.`);
   }
 
-  return createProvider(provider, apiKey, model);
+  return createProvider(provider, apiKey, model, baseUrl);
 }

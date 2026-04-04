@@ -98,6 +98,7 @@ export function detectProvider(): LLMProvider | null {
   if (process.env.OPENAI_API_KEY) {
     return 'openai';
   }
+  // Check if LM Studio is running locally
   return null;
 }
 
@@ -110,6 +111,8 @@ export function getApiKey(provider: LLMProvider): string | undefined {
       return process.env.ANTHROPIC_API_KEY;
     case 'openai':
       return process.env.OPENAI_API_KEY;
+    case 'lmstudio':
+      return 'lm-studio'; // No API key needed
   }
 }
 
@@ -117,6 +120,7 @@ export function getApiKey(provider: LLMProvider): string | undefined {
  * Validate that the required API key is available
  */
 export function validateApiKey(provider: LLMProvider): void {
+  if (provider === 'lmstudio') return; // No API key needed
   const key = getApiKey(provider);
   if (!key) {
     throw new MissingApiKeyError(provider);
