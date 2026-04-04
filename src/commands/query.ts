@@ -84,7 +84,7 @@ export async function query(ctx: CommandContext): Promise<number> {
   }
 
   // Create LLM provider
-  const provider = createProviderFromEnv(config.llm.provider, config.llm.model);
+  const provider = createProviderFromEnv(config.llm.provider, config.llm.model, config.llm.baseUrl);
 
   // Build context from relevant articles
   const articles = relevantContent.map((r) => ({

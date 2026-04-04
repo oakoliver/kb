@@ -13,6 +13,7 @@ import query from './commands/query';
 import lint from './commands/lint';
 import status from './commands/status';
 import promote from './commands/promote';
+import studio from './commands/studio';
 
 // =============================================================================
 // Version and Help
@@ -35,6 +36,7 @@ ${styles.bold.render('COMMANDS')}
   lint                Check wiki health
   status              Show wiki statistics
   promote <file>      Move a query output into the wiki
+  studio              Open the interactive TUI workspace
 
 ${styles.bold.render('GLOBAL OPTIONS')}
   --help, -h          Show help
@@ -126,7 +128,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
  */
 function isValueLike(arg: string): boolean {
   // If it's a known command, it's not a value
-  const commands = ['init', 'ingest', 'compile', 'find', 'query', 'lint', 'status', 'promote'];
+  const commands = ['init', 'ingest', 'compile', 'find', 'query', 'lint', 'status', 'promote', 'studio'];
   return !commands.includes(arg);
 }
 
@@ -153,7 +155,7 @@ export function normalizeFlags(flags: Record<string, string | boolean>): Record<
 // Command Types
 // =============================================================================
 
-export type CommandName = 'init' | 'ingest' | 'compile' | 'find' | 'query' | 'lint' | 'status' | 'promote';
+export type CommandName = 'init' | 'ingest' | 'compile' | 'find' | 'query' | 'lint' | 'status' | 'promote' | 'studio';
 
 export interface CommandContext {
   flags: Record<string, string | boolean>;
@@ -175,6 +177,7 @@ const commands: Record<CommandName, CommandHandler | null> = {
   lint: lint,
   status: status,
   promote: promote,
+  studio: studio,
 };
 
 /**

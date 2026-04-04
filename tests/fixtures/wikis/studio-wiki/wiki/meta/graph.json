@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "nodes": {
+    "wiki/concepts/attention-mechanism.md": {
+      "dependsOn": ["raw/articles/attention-mechanism.md"],
+      "dependents": ["wiki/entities/transformer.md", "wiki/concepts/self-attention.md", "wiki/syntheses/evolution-of-nlp.md"]
+    },
+    "wiki/concepts/self-attention.md": {
+      "dependsOn": ["raw/articles/attention-mechanism.md"],
+      "dependents": ["wiki/entities/transformer.md", "wiki/syntheses/evolution-of-nlp.md"]
+    },
+    "wiki/entities/transformer.md": {
+      "dependsOn": ["raw/articles/transformer-paper.md"],
+      "dependents": ["wiki/entities/bert.md", "wiki/syntheses/evolution-of-nlp.md"]
+    },
+    "wiki/entities/bert.md": {
+      "dependsOn": ["raw/articles/bert-notes.md"],
+      "dependents": ["wiki/syntheses/evolution-of-nlp.md"]
+    },
+    "wiki/syntheses/evolution-of-nlp.md": {
+      "dependsOn": [
+        "raw/articles/attention-mechanism.md",
+        "raw/articles/transformer-paper.md",
+        "raw/articles/bert-notes.md"
+      ],
+      "dependents": []
+    }
+  }
+}

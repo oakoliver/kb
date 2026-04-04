@@ -43,6 +43,7 @@
     "lint": "bun run tsc --noEmit"
   },
   "dependencies": {
+    "@oakoliver/bubbletea": "^1.0.0",
     "@oakoliver/bubbles": "^1.0.3",
     "@oakoliver/glamour": "^1.0.1",
     "@oakoliver/huh": "^1.0.1",
