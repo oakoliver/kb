@@ -44,13 +44,13 @@
     "lint": "bun run tsc --noEmit"
   },
   "dependencies": {
-    "@oakoliver/bubbletea": "^1.0.0",
-    "@oakoliver/bubbles": "^1.0.3",
-    "@oakoliver/glamour": "^1.0.1",
-    "@oakoliver/huh": "^1.0.1",
-    "@oakoliver/lipgloss": "^1.0.2",
-    "bm25s": "^1.0.1",
-    "pageindex": "^1.0.1",
+    "@oakoliver/bubbletea": "^1.2.0",
+    "@oakoliver/bubbles": "^1.2.2",
+    "@oakoliver/glamour": "^2.0.0",
+    "@oakoliver/huh": "^1.1.1",
+    "@oakoliver/lipgloss": "^1.1.2",
+    "bm25s": "^2.0.0",
+    "pageindex": "^2.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
