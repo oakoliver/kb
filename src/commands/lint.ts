@@ -7,7 +7,7 @@ import { readdir } from 'fs/promises';
 import { join } from 'path';
 import { resolveWikiRoot, getWikiPaths } from '../core/resolver';
 import { loadOrCreateGraph, findOrphans, type Graph } from '../core/graph';
-import { parseFrontmatter, extractWikilinks, titleToSlug } from '../core/markdown';
+import { parseFrontmatter, extractWikilinks, titleToSlug, updateArticleFrontmatter } from '../core/markdown';
 import { FrontmatterSchema, type Frontmatter } from '../core/schemas';
 import { output, error as outputError, isTTY, styles, symbols } from '../output/format';
 import type { CommandContext } from '../cli';
@@ -29,6 +29,8 @@ export interface LintIssue {
 export interface LintResult {
   errors: LintIssue[];
   warnings: LintIssue[];
+  /** Issues repaired by --fix (present only with --fix) */
+  fixed?: LintIssue[];
   healthy: boolean;
 }
 
@@ -81,7 +83,8 @@ export async function lint(ctx: CommandContext): Promise<number> {
 
   // Check broken links
   const brokenLinks = checkBrokenLinks(articles);
-  errors.push(...brokenLinks);
+  const fixed = options.fix ? await fixBrokenRelated(articles, brokenLinks) : [];
+  errors.push(...brokenLinks.filter((issue) => !fixed.includes(issue)));
 
   // Check orphans
   const orphans = checkOrphans(articles, graph);
@@ -94,6 +97,7 @@ export async function lint(ctx: CommandContext): Promise<number> {
   const result: LintResult = {
     errors,
     warnings,
+    ...(options.fix ? { fixed } : {}),
     healthy: errors.length === 0,
   };
 
@@ -254,6 +258,7 @@ function checkBrokenLinks(articles: ArticleInfo[]): LintIssue[] {
             message: `Broken link in related: [[${linkedTitle}]]`,
             link: `[[${linkedTitle}]]`,
             location: 'related',
+            fixable: true,
           });
         }
       }
@@ -261,6 +266,34 @@ function checkBrokenLinks(articles: ArticleInfo[]): LintIssue[] {
   }
 
   return issues;
+}
+
+/**
+ * Remove related: entries that link to articles that don't exist.
+ *
+ * This is the only fix --fix applies: dropping a dead cross-reference is
+ * deterministic, while repairing a link in the body would mean rewriting
+ * prose, so body links are left for the user.
+ */
+async function fixBrokenRelated(articles: ArticleInfo[], issues: LintIssue[]): Promise<LintIssue[]> {
+  const fixed: LintIssue[] = [];
+
+  for (const article of articles) {
+    const own = issues.filter((i) => i.file === article.relativePath && i.location === 'related');
+    if (own.length === 0 || !article.frontmatter) continue;
+
+    const dead = new Set(own.map((i) => i.link!.toLowerCase()));
+    const related = article.frontmatter.related.filter((entry) => {
+      const match = entry.match(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/);
+      return !match || !dead.has(`[[${match[1].trim()}]]`.toLowerCase());
+    });
+
+    const content = await Bun.file(article.path).text();
+    await Bun.write(article.path, updateArticleFrontmatter(content, { related }));
+    fixed.push(...own);
+  }
+
+  return fixed;
 }
 
 /**
@@ -299,6 +332,13 @@ function checkOrphans(articles: ArticleInfo[], graph: Graph): LintIssue[] {
  * Format lint output for TTY
  */
 function formatLintOutput(result: LintResult): void {
+  // Print fixes
+  for (const issue of result.fixed ?? []) {
+    console.log(
+      `${styles.success.render(symbols.success)} Fixed: removed ${issue.link} from related in ${styles.path.render(issue.file)}`
+    );
+  }
+
   // Print errors
   for (const error of result.errors) {
     console.log(`${styles.error.render(symbols.error)} ${formatIssue(error)}`);
@@ -313,6 +353,13 @@ function formatLintOutput(result: LintResult): void {
   if (result.errors.length === 0 && result.warnings.length === 0) {
     console.log(`${styles.success.render(symbols.success)} Wiki is healthy`);
   } else {
+    const fixable = result.errors.filter((e) => e.fixable).length;
+    if (fixable > 0) {
+      console.log('');
+      console.log(
+        styles.dim.render(`Run kb lint --fix to remove ${fixable} broken related entr${fixable === 1 ? 'y' : 'ies'}.`)
+      );
+    }
     console.log('');
     const parts: string[] = [];
     if (result.errors.length > 0) {

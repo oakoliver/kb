@@ -343,7 +343,7 @@ kb lint [--fix]
 
 | Option | Description |
 |--------|-------------|
-| `--fix` | Attempt to fix issues automatically |
+| `--fix` | Remove `related:` entries that link to missing articles. Broken links in the body, orphans and invalid frontmatter are reported, not changed |
 
 ### Checks Performed
 

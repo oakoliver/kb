@@ -299,7 +299,7 @@ kb lint [--fix]
 
 | Option | Type | Description |
 |--------|------|-------------|
-| `--fix` | boolean | Attempt to fix issues automatically |
+| `--fix` | boolean | Remove `related:` entries that link to missing articles; other issues are reported, not changed |
 
 ### Output
 

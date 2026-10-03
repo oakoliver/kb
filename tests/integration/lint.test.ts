@@ -217,4 +217,65 @@ related: []
     const output = result.stdout.toString() + result.stderr.toString();
     expect(output.toLowerCase()).not.toContain('unknown');
   });
+
+  test('--fix removes broken related entries and leaves body links reported', async () => {
+    const article = (title: string, related: string[], body: string) => `---
+title: ${title}
+type: concept
+created: 2026-04-01T10:00:00Z
+updated: 2026-04-01T10:00:00Z
+sources:
+  - raw/articles/source.md
+related:
+${related.map((r) => `  - "${r}"`).join('\n') || '  []'}
+---
+
+# ${title}
+
+${body}`;
+    await writeFile(join(wikiDir, 'wiki', 'concepts', 'kept.md'), article('Kept Article', ['[[Linking Article]]'], 'Exists.'));
+    const linkingPath = join(wikiDir, 'wiki', 'concepts', 'linking.md');
+    await writeFile(
+      linkingPath,
+      article('Linking Article', ['[[Kept Article]]', '[[Deleted Article]]'], 'See [[Deleted Article]].')
+    );
+
+    const fixedRun = await $`bun run ${CLI_PATH} lint --fix`.cwd(wikiDir).nothrow();
+    const fixedResult = JSON.parse(fixedRun.stdout.toString());
+
+    expect(fixedResult.fixed).toHaveLength(1);
+    expect(fixedResult.fixed[0]).toMatchObject({ location: 'related', link: '[[Deleted Article]]' });
+    // The body link can't be fixed deterministically, so it is still an error
+    expect(fixedResult.errors).toEqual([
+      expect.objectContaining({ type: 'broken_link', location: 'body', link: '[[Deleted Article]]' }),
+    ]);
+
+    const content = await Bun.file(linkingPath).text();
+    expect(content).toContain('[[Kept Article]]');
+    expect(content).toContain('See [[Deleted Article]].');
+    expect(content.split('---')[1]).not.toContain('Deleted Article');
+
+    const after = JSON.parse((await $`bun run ${CLI_PATH} lint`.cwd(wikiDir).nothrow()).stdout.toString());
+    expect(after.errors.filter((e: { location?: string }) => e.location === 'related')).toEqual([]);
+  });
+
+  test('lint without --fix does not modify files', async () => {
+    const path = join(wikiDir, 'wiki', 'concepts', 'test.md');
+    const original = `---
+title: Test Article
+type: concept
+created: 2026-04-01T10:00:00Z
+updated: 2026-04-01T10:00:00Z
+sources: []
+related:
+  - "[[Nonexistent Article]]"
+---
+
+# Test Article`;
+    await writeFile(path, original);
+
+    await $`bun run ${CLI_PATH} lint`.cwd(wikiDir).nothrow();
+
+    expect(await Bun.file(path).text()).toBe(original);
+  });
 });
