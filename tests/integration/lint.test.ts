@@ -259,6 +259,37 @@ ${body}`;
     expect(after.errors.filter((e: { location?: string }) => e.location === 'related')).toEqual([]);
   });
 
+  test('related entries written as plain titles (older kb compile) are checked and fixed too', async () => {
+    const article = (title: string, related: string[]) => `---
+title: ${title}
+type: concept
+created: 2026-04-01T10:00:00Z
+updated: 2026-04-01T10:00:00Z
+sources:
+  - raw/articles/source.md
+related:
+${related.map((r) => `  - "${r}"`).join('\n')}
+---
+
+# ${title}
+
+Body.`;
+    await writeFile(join(wikiDir, 'wiki', 'concepts', 'kept.md'), article('Kept Article', ['Linking Article']));
+    const linkingPath = join(wikiDir, 'wiki', 'concepts', 'linking.md');
+    await writeFile(linkingPath, article('Linking Article', ['Kept Article', 'Deleted Article']));
+
+    const before = JSON.parse((await $`bun run ${CLI_PATH} lint`.cwd(wikiDir).nothrow()).stdout.toString());
+    expect(before.errors).toEqual([
+      expect.objectContaining({ type: 'broken_link', location: 'related', link: '[[Deleted Article]]' }),
+    ]);
+
+    const fixed = JSON.parse((await $`bun run ${CLI_PATH} lint --fix`.cwd(wikiDir).nothrow()).stdout.toString());
+    expect(fixed.fixed).toHaveLength(1);
+    const frontmatter = (await Bun.file(linkingPath).text()).split('---')[1];
+    expect(frontmatter).toContain('Kept Article');
+    expect(frontmatter).not.toContain('Deleted Article');
+  });
+
   test('lint without --fix does not modify files', async () => {
     const path = join(wikiDir, 'wiki', 'concepts', 'test.md');
     const original = `---

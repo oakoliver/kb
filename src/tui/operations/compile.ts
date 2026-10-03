@@ -55,7 +55,7 @@ export async function compileWorkspace(
     const {
       parseFrontmatter,
       createArticle,
-      extractWikilinks,
+      relatedFromBody,
       titleToSlug,
       getArticlePath,
       getArticleDir,
@@ -163,7 +163,7 @@ export async function compileWorkspace(
         }, { print: false });
 
         // Create frontmatter and write
-        const frontmatter = createFrontmatter(entry.title, articleType, [entry.path], extractWikilinks(articleContent));
+        const frontmatter = createFrontmatter(entry.title, articleType, [entry.path], relatedFromBody(articleContent));
         const fullArticle = createArticle(frontmatter, articleContent);
         const articleDir = join(ctx.paths.wiki, getArticleDir(articleType));
         const articleFilename = `${titleToSlug(entry.title)}.md`;

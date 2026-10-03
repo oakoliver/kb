@@ -12,7 +12,7 @@ import { loadConfig, getApiKey } from '../core/config';
 import {
   parseFrontmatter,
   createArticle,
-  extractWikilinks,
+  relatedFromBody,
   titleToSlug,
   getArticlePath,
   getArticleDir,
@@ -274,7 +274,7 @@ async function compileSource(
     entry.title,
     articleType,
     [entry.path],
-    extractWikilinks(articleContent)
+    relatedFromBody(articleContent)
   );
 
   // Create full article

@@ -204,3 +204,21 @@ This is the second paragraph.`;
     expect(summary).not.toContain('second paragraph');
   });
 });
+
+describe('related entries', () => {
+  test('relatedTarget reads both the wikilink form and a plain title', async () => {
+    const { relatedTarget } = await import('../../../src/core/markdown');
+    expect(relatedTarget('[[Hydration]]')).toBe('Hydration');
+    expect(relatedTarget('[[Hydration|water ratio]]')).toBe('Hydration');
+    expect(relatedTarget('Hydration')).toBe('Hydration');
+    expect(relatedTarget('  ')).toBeNull();
+  });
+
+  test('relatedFromBody returns the body links as [[wikilinks]], as the spec requires', async () => {
+    const { relatedFromBody } = await import('../../../src/core/markdown');
+    expect(relatedFromBody('Feed the [[Starter]] before [[Autolyse|resting]]; see [[Starter]].')).toEqual([
+      '[[Starter]]',
+      '[[Autolyse]]',
+    ]);
+  });
+});
