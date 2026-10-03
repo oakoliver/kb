@@ -21,6 +21,8 @@ export interface LintIssue {
   file: string;
   message: string;
   link?: string;
+  /** Where a broken link appears: the article body or its `related:` list */
+  location?: 'body' | 'related';
   fixable?: boolean;
 }
 
@@ -234,6 +236,7 @@ function checkBrokenLinks(articles: ArticleInfo[]): LintIssue[] {
           file: article.relativePath,
           message: `Broken link to [[${link}]]`,
           link: `[[${link}]]`,
+          location: 'body',
         });
       }
     }
@@ -250,6 +253,7 @@ function checkBrokenLinks(articles: ArticleInfo[]): LintIssue[] {
             file: article.relativePath,
             message: `Broken link in related: [[${linkedTitle}]]`,
             link: `[[${linkedTitle}]]`,
+            location: 'related',
           });
         }
       }
@@ -324,12 +328,12 @@ function formatLintOutput(result: LintResult): void {
 /**
  * Format a single issue
  */
-function formatIssue(issue: LintIssue): string {
+export function formatIssue(issue: LintIssue): string {
   const file = styles.path.render(issue.file);
 
   switch (issue.type) {
     case 'broken_link':
-      return `Broken link: ${file} → ${issue.link}`;
+      return `Broken link: ${file} → ${issue.link}${issue.location ? ` (in ${issue.location})` : ''}`;
     case 'orphan':
       return `Orphan: ${file}`;
     case 'stale':
