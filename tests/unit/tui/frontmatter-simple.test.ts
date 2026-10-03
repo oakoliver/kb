@@ -23,3 +23,21 @@ describe('parseFrontmatterSimple', () => {
     expect(parseFrontmatterSimple('---\ntitle: Plain\ntype: "concept"\n---\n')).toMatchObject({ title: 'Plain', type: 'concept' });
   });
 });
+
+describe('buildExplorerItems', () => {
+  test('shows titles without the quotes kb writes', async () => {
+    const { mkdtemp, mkdir, writeFile, rm } = await import('fs/promises');
+    const { tmpdir } = await import('os');
+    const { join } = await import('path');
+    const { buildExplorerItems } = await import('../../../src/tui/operations/workspace');
+    const wiki = await mkdtemp(join(tmpdir(), 'kb-explorer-'));
+    try {
+      await mkdir(join(wiki, 'entities'), { recursive: true });
+      await writeFile(join(wiki, 'entities', 'tomato.md'), '---\ntitle: "Tomato"\ntype: entity\n---\n# Tomato\n');
+      const [dir] = await buildExplorerItems(wiki);
+      expect(dir.children?.[0]?.name).toBe('Tomato');
+    } finally {
+      await rm(wiki, { recursive: true, force: true });
+    }
+  });
+});

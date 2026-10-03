@@ -6,6 +6,7 @@
 import { readdir, readFile, stat } from 'fs/promises';
 import { join, relative, basename } from 'path';
 import type { WikiPaths } from '../../core/resolver';
+import { parseFrontmatterSimple } from '../document';
 import type { WorkspaceSnapshot, ExplorerItem, StatusBarState } from '../state';
 
 // =============================================================================
@@ -200,9 +201,7 @@ async function countMarkdownFiles(dir: string): Promise<number> {
 
 async function getArticleTitle(filePath: string): Promise<string> {
   try {
-    const content = await readFile(filePath, 'utf-8');
-    const match = content.match(/^---\n[\s\S]*?title:\s*(.+)\n[\s\S]*?\n---/);
-    return match ? match[1].trim() : '';
+    return parseFrontmatterSimple(await readFile(filePath, 'utf-8')).title;
   } catch {
     return '';
   }
