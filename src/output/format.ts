@@ -10,9 +10,17 @@ import { newStyle } from '@oakoliver/lipgloss';
 // =============================================================================
 
 /**
- * Check if stdout is a TTY (terminal)
+ * Whether `--json` was passed anywhere on the command line.
  */
-export const isTTY = process.stdout.isTTY ?? false;
+export function wantsJsonOutput(argv: string[]): boolean {
+  return argv.slice(2).some((arg) => arg === '--json' || arg === '--json=true');
+}
+
+/**
+ * Check if stdout is a TTY (terminal). `--json` forces machine output, so it
+ * counts as not a TTY.
+ */
+export const isTTY = (process.stdout.isTTY ?? false) && !wantsJsonOutput(process.argv);
 
 // =============================================================================
 // Styles

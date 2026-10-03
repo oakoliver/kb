@@ -72,6 +72,9 @@ export interface ParsedArgs {
   positionals: string[];
 }
 
+/** Flags that are switches and never consume the next argument as a value. */
+const BOOLEAN_FLAGS = new Set(['help', 'version', 'json', 'fix', 'full', 'dry-run', 'no-file', 'global']);
+
 /**
  * Parse command line arguments
  */
@@ -96,7 +99,10 @@ export function parseArgs(argv: string[]): ParsedArgs {
         // --flag or --flag value
         const key = arg.slice(2);
         const nextArg = args[i + 1];
-        if (nextArg && !nextArg.startsWith('-')) {
+        if (BOOLEAN_FLAGS.has(key)) {
+          // Never takes a value: `kb find --json starter` searches "starter".
+          flags[key] = true;
+        } else if (nextArg && !nextArg.startsWith('-')) {
           // Check if it looks like a value (not a command or flag)
           if (isValueLike(nextArg)) {
             flags[key] = nextArg;
