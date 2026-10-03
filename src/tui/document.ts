@@ -3,7 +3,7 @@
  * @module tui/document
  */
 
-import { renderWithStyle } from '@oakoliver/glamour';
+import { renderWithStyle, TermRenderer, withStandardStyle, withWordWrap } from '@oakoliver/glamour';
 import { readFile } from 'fs/promises';
 import { join, basename } from 'path';
 import type { OpenDocument, LinkPosition } from './state';
@@ -59,12 +59,12 @@ function unquoteYamlScalar(value: string): string {
 /**
  * Load and render a markdown document from the wiki
  */
-export async function loadDocument(filePath: string): Promise<OpenDocument> {
+export async function loadDocument(filePath: string, width?: number): Promise<OpenDocument> {
   const raw = await readFile(filePath, 'utf-8');
   const { title, body, type } = parseFrontmatterSimple(raw);
 
-  // Render markdown with glamour
-  const renderedContent = renderWithStyle(body, 'dark');
+  // Render markdown with glamour, wrapped to the editor pane when known
+  const renderedContent = renderDocumentContent(body, width);
 
   // Extract wikilinks for navigation
   const links = extractWikilinks(body);
@@ -80,9 +80,17 @@ export async function loadDocument(filePath: string): Promise<OpenDocument> {
   };
 }
 
+/** Narrowest width documents are wrapped to; narrower panes clip instead. */
+const MIN_WRAP_WIDTH = 20;
+
 /**
- * Re-render document content with a specific width
+ * Render document markdown, word-wrapped to `width` cells when given.
  */
-export function renderDocumentContent(body: string, _width?: number): string {
-  return renderWithStyle(body, 'dark');
+export function renderDocumentContent(body: string, width?: number): string {
+  if (!width || width <= 0) return renderWithStyle(body, 'dark');
+  const renderer = new TermRenderer(
+    withStandardStyle('dark'),
+    withWordWrap(Math.max(MIN_WRAP_WIDTH, width)),
+  );
+  return renderer.render(body);
 }
