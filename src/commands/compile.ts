@@ -12,7 +12,7 @@ import { loadConfig, getApiKey } from '../core/config';
 import {
   parseFrontmatter,
   createArticle,
-  extractWikilinks,
+  relatedFromBody,
   titleToSlug,
   getArticlePath,
   getArticleDir,
@@ -274,7 +274,7 @@ async function compileSource(
     entry.title,
     articleType,
     [entry.path],
-    extractWikilinks(articleContent)
+    relatedFromBody(articleContent)
   );
 
   // Create full article
@@ -424,32 +424,17 @@ async function regenerateIndex(
 // =============================================================================
 
 /**
- * Format human-readable output for compile command
+ * Format human-readable output for compile command. The spinner has already
+ * printed a Created/Updated line per article, so this is only the totals.
  */
-function formatCompileOutput(result: CompileResult): string {
-  const lines: string[] = [];
-
-  if (result.created.length > 0) {
-    for (const path of result.created) {
-      lines.push(`  ${styles.success.render(symbols.success)} Created: ${styles.path.render(path)}`);
-    }
-  }
-
-  if (result.updated.length > 0) {
-    for (const path of result.updated) {
-      lines.push(`  ${styles.success.render(symbols.success)} Updated: ${styles.path.render(path)}`);
-    }
-  }
-
-  if (lines.length > 0) {
-    lines.push('');
-  }
-
+export function formatCompileOutput(result: CompileResult): string {
   const totalCompiled = result.created.length + result.updated.length;
+  const parts: string[] = [];
+  if (result.created.length > 0) parts.push(`${result.created.length} created`);
+  if (result.updated.length > 0) parts.push(`${result.updated.length} updated`);
+  const detail = parts.length > 0 ? ` (${parts.join(', ')})` : '';
   const duration = (result.duration_ms / 1000).toFixed(1);
-  lines.push(`Compiled ${totalCompiled} article${totalCompiled !== 1 ? 's' : ''} in ${duration}s`);
-
-  return lines.join('\n');
+  return `Compiled ${totalCompiled} article${totalCompiled !== 1 ? 's' : ''}${detail} in ${duration}s`;
 }
 
 export default compile;

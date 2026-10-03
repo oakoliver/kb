@@ -4,12 +4,12 @@
  */
 
 import type { EditorState, OpenDocument, HistoryEntry } from './state';
-import { loadDocument } from './document';
+import { loadDocument, parseFrontmatterSimple, renderDocumentContent } from './document';
 import { nextLinkIndex, prevLinkIndex, buildLinkTargetMap, resolveWikilinkPath } from './link-map';
 import { existsSync } from 'fs';
 import { join, basename } from 'path';
 import { theme, colors, icons } from './theme';
-import { newStyle } from '@oakoliver/lipgloss';
+import { newStyle, truncate } from '@oakoliver/lipgloss';
 
 // =============================================================================
 // Document Opening & Closing
@@ -21,8 +21,9 @@ import { newStyle } from '@oakoliver/lipgloss';
 export async function openDocument(
   state: EditorState,
   filePath: string,
+  width?: number,
 ): Promise<EditorState> {
-  const doc = await loadDocument(filePath);
+  const doc = await loadDocument(filePath, width);
 
   // Push current document to history before opening new one
   const history = [...state.history];
@@ -50,11 +51,11 @@ export async function openDocument(
 /**
  * Navigate back in history
  */
-export async function navigateBack(state: EditorState): Promise<EditorState> {
+export async function navigateBack(state: EditorState, width?: number): Promise<EditorState> {
   if (state.historyIndex < 0 || state.history.length === 0) return state;
 
   const entry = state.history[state.historyIndex];
-  const doc = await loadDocument(entry.path);
+  const doc = await loadDocument(entry.path, width);
   doc.scrollY = entry.scrollY;
 
   return {
@@ -79,6 +80,19 @@ export async function navigateForward(state: EditorState): Promise<EditorState> 
   // History represents past documents. When navigating back, we decrement.
   // navigateForward is not standard in our model -- we only support back.
   return state;
+}
+
+/**
+ * Re-render the open document for a new editor width (terminal resize),
+ * keeping the scroll position in range.
+ */
+export function rewrapDocument(state: EditorState, width: number): EditorState {
+  const doc = state.document;
+  if (!doc || !doc.content) return state;
+  const { body } = parseFrontmatterSimple(doc.content);
+  const renderedContent = renderDocumentContent(body, width);
+  const maxScroll = Math.max(0, renderedContent.split('\n').length - 1);
+  return { ...state, document: { ...doc, renderedContent, scrollY: Math.min(doc.scrollY, maxScroll) } };
 }
 
 // =============================================================================
@@ -273,13 +287,9 @@ export function renderEditor(
     visibleLines.push(theme.muted.render('~'));
   }
 
-  // Truncate lines to width
-  const contentBlock = visibleLines
-    .map((line) => {
-      // Simple width truncation (ANSI-aware would be better but this works)
-      return line;
-    })
-    .join('\n');
+  // Clip anything still wider than the pane (long code lines, URLs), so the
+  // frame never overflows
+  const contentBlock = visibleLines.map((line) => truncate(line, width)).join('\n');
 
   return titleBar + '\n' + contentBlock;
 }

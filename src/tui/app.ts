@@ -43,6 +43,7 @@ import {
 import {
   openDocument,
   navigateBack,
+  rewrapDocument,
   scrollDocument,
   scrollToTop,
   scrollToBottom,
@@ -164,6 +165,7 @@ export class StudioApp implements Model {
         ...this.state,
         terminal: { width: msg.width, height: msg.height },
       };
+      this.state = { ...this.state, editor: rewrapDocument(this.state.editor, this._editorContentWidth()) };
       return [this, null];
     }
 
@@ -186,6 +188,7 @@ export class StudioApp implements Model {
     }
     if (msg instanceof ToggleSidebarMsg) {
       this.state = { ...this.state, sidebarVisible: !this.state.sidebarVisible };
+      this.state = { ...this.state, editor: rewrapDocument(this.state.editor, this._editorContentWidth()) };
       return [this, null];
     }
     if (msg instanceof ToggleBottomPanelMsg) {
@@ -370,6 +373,17 @@ export class StudioApp implements Model {
     return [this, null];
   }
 
+  /** Width of the editor pane's content (inside its border). */
+  private _editorContentWidth(): number {
+    const layout = calculateLayout(
+      this.state.terminal.width,
+      this.state.terminal.height,
+      this.state.sidebarVisible,
+      this.state.bottomPanel.visible,
+    );
+    return layout.editor.width - 2;
+  }
+
   private _openDocumentCmd(path: string): Cmd {
     return async (): Promise<Msg> => {
       try {
@@ -382,7 +396,7 @@ export class StudioApp implements Model {
   }
 
   private async _openDocumentAsync(path: string): Promise<void> {
-    const newEditor = await openDocument(this.state.editor, path);
+    const newEditor = await openDocument(this.state.editor, path, this._editorContentWidth());
     this.state = {
       ...this.state,
       editor: newEditor,
@@ -396,7 +410,7 @@ export class StudioApp implements Model {
 
   private _handleNavigateBack(): [Model, Cmd] {
     return [this, async (): Promise<Msg> => {
-      const newEditor = await navigateBack(this.state.editor);
+      const newEditor = await navigateBack(this.state.editor, this._editorContentWidth());
       this.state = { ...this.state, editor: newEditor };
       return new DismissOverlayMsg(); // just a no-op message to trigger re-render
     }];
@@ -433,6 +447,7 @@ export class StudioApp implements Model {
     if (key === 'ctrl+q') return [this, Quit];
     if (key === 'ctrl+b') {
       this.state = { ...this.state, sidebarVisible: !this.state.sidebarVisible };
+      this.state = { ...this.state, editor: rewrapDocument(this.state.editor, this._editorContentWidth()) };
       return [this, null];
     }
     if (key === 'ctrl+j') {
@@ -599,6 +614,7 @@ export class StudioApp implements Model {
 
       case 'kb.toggleSidebar':
         this.state = { ...this.state, sidebarVisible: !this.state.sidebarVisible };
+        this.state = { ...this.state, editor: rewrapDocument(this.state.editor, this._editorContentWidth()) };
         return [this, null];
 
       case 'kb.toggleBottomPanel':

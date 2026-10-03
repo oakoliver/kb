@@ -7,7 +7,7 @@ import { readdir } from 'fs/promises';
 import { join } from 'path';
 import { resolveWikiRoot, getWikiPaths } from '../core/resolver';
 import { loadOrCreateGraph, findOrphans, type Graph } from '../core/graph';
-import { parseFrontmatter, extractWikilinks, titleToSlug, updateArticleFrontmatter } from '../core/markdown';
+import { parseFrontmatter, extractWikilinks, relatedTarget, titleToSlug, updateArticleFrontmatter } from '../core/markdown';
 import { FrontmatterSchema, type Frontmatter } from '../core/schemas';
 import { output, error as outputError, isTTY, styles, symbols } from '../output/format';
 import type { CommandContext } from '../cli';
@@ -247,10 +247,8 @@ function checkBrokenLinks(articles: ArticleInfo[]): LintIssue[] {
 
     // Check wikilinks in related
     for (const related of article.frontmatter.related) {
-      // Extract title from wikilink format [[Title]]
-      const match = related.match(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/);
-      if (match) {
-        const linkedTitle = match[1].trim();
+      const linkedTitle = relatedTarget(related);
+      if (linkedTitle) {
         if (!existingTitles.has(linkedTitle.toLowerCase())) {
           issues.push({
             type: 'broken_link',
@@ -284,8 +282,8 @@ async function fixBrokenRelated(articles: ArticleInfo[], issues: LintIssue[]): P
 
     const dead = new Set(own.map((i) => i.link!.toLowerCase()));
     const related = article.frontmatter.related.filter((entry) => {
-      const match = entry.match(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/);
-      return !match || !dead.has(`[[${match[1].trim()}]]`.toLowerCase());
+      const target = relatedTarget(entry);
+      return !target || !dead.has(`[[${target}]]`.toLowerCase());
     });
 
     const content = await Bun.file(article.path).text();

@@ -169,4 +169,18 @@ describe('kb ingest', () => {
     const entries = (await manifest.exists()) ? (await manifest.json()).entries : [];
     expect(entries).toEqual([]);
   });
+
+  test('explains that a local folder or repository is not a source', async () => {
+    const repo = join(testDir, 'my-repo');
+    await mkdir(join(repo, '.git'), { recursive: true });
+    await writeFile(join(repo, 'README.md'), '# My Repo\n\nWhat it does.');
+
+    const result = await $`bun run ${CLI_PATH} ingest ${repo}`.cwd(wikiDir).nothrow();
+    const text = result.stdout.toString() + result.stderr.toString();
+
+    expect(result.exitCode).toBe(1);
+    expect(text).not.toContain('File not found');
+    expect(text).toContain('is a directory');
+    expect(text).toContain(join(repo, 'README.md'));
+  });
 });

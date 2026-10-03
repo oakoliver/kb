@@ -184,6 +184,25 @@ export function updateArticleFrontmatter(content: string, updates: Partial<Front
 // =============================================================================
 
 /**
+ * The article a `related:` entry points to. The spec form is `"[[Title]]"`
+ * (optionally `[[Title|label]]`); kb compile before 0.1.2 wrote plain titles,
+ * which are accepted too.
+ */
+export function relatedTarget(entry: string): string | null {
+  const match = entry.match(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/);
+  const target = (match ? match[1] : entry).trim();
+  return target === '' ? null : target;
+}
+
+/**
+ * The `related:` list for an article body: its wikilinks, in the spec's
+ * `[[Title]]` form.
+ */
+export function relatedFromBody(content: string): string[] {
+  return extractWikilinks(content).map((title) => `[[${title}]]`);
+}
+
+/**
  * Extract all wikilinks from markdown content
  * Returns array of link targets (without [[ ]])
  */

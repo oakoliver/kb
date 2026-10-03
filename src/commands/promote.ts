@@ -10,6 +10,7 @@ import {
   parseFrontmatter,
   createArticle,
   extractWikilinks,
+  relatedTarget,
   titleToSlug,
   getArticleDir,
   serializeFrontmatter,
@@ -124,10 +125,7 @@ export async function promote(ctx: CommandContext): Promise<number> {
   // Extract wikilinks for backlink injection
   const wikilinks = extractWikilinks(body);
   const relatedLinks = frontmatter.related
-    .map((r) => {
-      const match = r.match(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/);
-      return match ? match[1].trim() : null;
-    })
+    .map(relatedTarget)
     .filter((r): r is string => r !== null);
 
   const allLinks = [...new Set([...wikilinks, ...relatedLinks])];
