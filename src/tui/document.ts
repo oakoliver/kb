@@ -34,13 +34,22 @@ export function parseFrontmatterSimple(content: string): { title: string; body: 
 
   for (const line of yaml.split('\n')) {
     const titleMatch = line.match(/^title:\s*(.+)$/);
-    if (titleMatch) title = titleMatch[1].trim();
+    if (titleMatch) title = unquoteYamlScalar(titleMatch[1].trim());
 
     const typeMatch = line.match(/^type:\s*(.+)$/);
-    if (typeMatch) type = typeMatch[1].trim();
+    if (typeMatch) type = unquoteYamlScalar(typeMatch[1].trim());
   }
 
   return { title, body, type };
+}
+
+/** Strip YAML quotes; kb writes titles as `"..."` with `\"` escapes. */
+function unquoteYamlScalar(value: string): string {
+  const double = value.match(/^"(.*)"$/);
+  if (double) return double[1].replace(/\\"/g, '"');
+  const single = value.match(/^'(.*)'$/);
+  if (single) return single[1].replace(/''/g, "'");
+  return value;
 }
 
 // =============================================================================
