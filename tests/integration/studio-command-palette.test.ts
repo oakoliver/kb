@@ -73,7 +73,7 @@ describe('quick open and command palette', () => {
 
   test('Ctrl+P opens quick open overlay', () => {
     let app = baseApp;
-    const msg = new KeyPressMsg({ text: 'p', mod: KeyMod.Ctrl, code: 'p'.charCodeAt(0) });
+    const msg = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl, code: 'p'.charCodeAt(0) });
     const [model] = app.update(msg);
     app = model as StudioApp;
     expect(app.state.overlay).toBe('quickOpen');
@@ -81,7 +81,7 @@ describe('quick open and command palette', () => {
 
   test('Ctrl+Shift+P opens command palette', () => {
     let app = baseApp;
-    const msg = new KeyPressMsg({ text: 'p', mod: KeyMod.Ctrl | KeyMod.Shift, code: 'p'.charCodeAt(0) });
+    const msg = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: 'p'.charCodeAt(0) });
     const [model] = app.update(msg);
     app = model as StudioApp;
     expect(app.state.overlay).toBe('commandPalette');
@@ -90,7 +90,7 @@ describe('quick open and command palette', () => {
   test('Escape dismisses overlay', () => {
     // Open palette first
     let app = baseApp;
-    const openMsg = new KeyPressMsg({ text: 'p', mod: KeyMod.Ctrl, code: 'p'.charCodeAt(0) });
+    const openMsg = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl, code: 'p'.charCodeAt(0) });
     const [opened] = app.update(openMsg);
     app = opened as StudioApp;
     expect(app.state.overlay).toBe('quickOpen');
@@ -104,7 +104,7 @@ describe('quick open and command palette', () => {
 
   test('command palette has commands populated', () => {
     let app = baseApp;
-    const msg = new KeyPressMsg({ text: 'p', mod: KeyMod.Ctrl | KeyMod.Shift, code: 'p'.charCodeAt(0) });
+    const msg = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: 'p'.charCodeAt(0) });
     const [model] = app.update(msg);
     app = model as StudioApp;
 
@@ -115,7 +115,7 @@ describe('quick open and command palette', () => {
   test('palette up/down navigation changes selectedIndex', () => {
     // Open command palette
     let app = baseApp;
-    const openMsg = new KeyPressMsg({ text: 'p', mod: KeyMod.Ctrl | KeyMod.Shift, code: 'p'.charCodeAt(0) });
+    const openMsg = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: 'p'.charCodeAt(0) });
     const [opened] = app.update(openMsg);
     app = opened as StudioApp;
     expect(app.state.palette.selectedIndex).toBe(0);
@@ -136,7 +136,7 @@ describe('quick open and command palette', () => {
   test('typing in palette filters items', () => {
     // Open command palette
     let app = baseApp;
-    const openMsg = new KeyPressMsg({ text: 'p', mod: KeyMod.Ctrl | KeyMod.Shift, code: 'p'.charCodeAt(0) });
+    const openMsg = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: 'p'.charCodeAt(0) });
     const [opened] = app.update(openMsg);
     app = opened as StudioApp;
     const totalBefore = app.state.palette.filteredItems.length;
@@ -153,7 +153,7 @@ describe('quick open and command palette', () => {
   test('backspace removes characters from query', () => {
     // Open and type
     let app = baseApp;
-    const openMsg = new KeyPressMsg({ text: 'p', mod: KeyMod.Ctrl | KeyMod.Shift, code: 'p'.charCodeAt(0) });
+    const openMsg = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: 'p'.charCodeAt(0) });
     const [opened] = app.update(openMsg);
     app = opened as StudioApp;
 
@@ -171,7 +171,7 @@ describe('quick open and command palette', () => {
 
   test('view renders overlay when active', () => {
     let app = baseApp;
-    const openMsg = new KeyPressMsg({ text: 'p', mod: KeyMod.Ctrl | KeyMod.Shift, code: 'p'.charCodeAt(0) });
+    const openMsg = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: 'p'.charCodeAt(0) });
     const [opened] = app.update(openMsg);
     app = opened as StudioApp;
 

@@ -23,11 +23,11 @@ function key(text: string, mod: number = KeyMod.None, code: number = 0): KeyPres
 }
 
 function ctrlKey(text: string): KeyPressMsg {
-  return new KeyPressMsg({ text, mod: KeyMod.Ctrl, code: text.charCodeAt(0) });
+  return new KeyPressMsg({ text: '', mod: KeyMod.Ctrl, code: text.toLowerCase().charCodeAt(0) });
 }
 
 function ctrlShiftKey(text: string): KeyPressMsg {
-  return new KeyPressMsg({ text, mod: KeyMod.Ctrl | KeyMod.Shift, code: text.charCodeAt(0) });
+  return new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: text.toLowerCase().charCodeAt(0) });
 }
 
 function specialKey(name: string): KeyPressMsg {
@@ -59,7 +59,7 @@ describe('studio ingest - Ctrl+Shift+I', () => {
     app.update(new WindowSizeMsg(120, 40));
 
     // Press Ctrl+Shift+I
-    const msg = new KeyPressMsg({ text: 'i', mod: KeyMod.Ctrl | KeyMod.Shift, code: 73 });
+    const msg = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: 105 });
     app.update(msg);
 
     const state = app.state;
@@ -88,7 +88,7 @@ describe('studio ingest - input handling', () => {
     app.update(new WindowSizeMsg(120, 40));
 
     // Switch to ingest pane
-    const shiftI = new KeyPressMsg({ text: 'i', mod: KeyMod.Ctrl | KeyMod.Shift, code: 73 });
+    const shiftI = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: 105 });
     app.update(shiftI);
 
     // Type characters
@@ -105,7 +105,7 @@ describe('studio ingest - input handling', () => {
     app.update(new WindowSizeMsg(120, 40));
 
     // Switch to ingest and type
-    const shiftI = new KeyPressMsg({ text: 'i', mod: KeyMod.Ctrl | KeyMod.Shift, code: 73 });
+    const shiftI = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: 105 });
     app.update(shiftI);
     app.update(key('a'));
     app.update(key('b'));
@@ -121,7 +121,7 @@ describe('studio ingest - input handling', () => {
     const app = createApp(fixturePath);
     app.update(new WindowSizeMsg(120, 40));
 
-    const shiftI = new KeyPressMsg({ text: 'i', mod: KeyMod.Ctrl | KeyMod.Shift, code: 73 });
+    const shiftI = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: 105 });
     app.update(shiftI);
     app.update(key('x'));
 
@@ -136,7 +136,7 @@ describe('studio ingest - input handling', () => {
     const app = createApp(fixturePath);
     app.update(new WindowSizeMsg(120, 40));
 
-    const shiftI = new KeyPressMsg({ text: 'i', mod: KeyMod.Ctrl | KeyMod.Shift, code: 73 });
+    const shiftI = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: 105 });
     app.update(shiftI);
     expect(app.state.activePane).toBe('ingest');
 
@@ -149,7 +149,7 @@ describe('studio ingest - input handling', () => {
     const app = createApp(fixturePath);
     app.update(new WindowSizeMsg(120, 40));
 
-    const shiftI = new KeyPressMsg({ text: 'i', mod: KeyMod.Ctrl | KeyMod.Shift, code: 73 });
+    const shiftI = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: 105 });
     app.update(shiftI);
 
     app.update(specialKey('tab'));
@@ -176,7 +176,7 @@ describe('studio ingest - submission', () => {
     app.update(new WindowSizeMsg(120, 40));
 
     // Switch to ingest and type a source
-    const shiftI = new KeyPressMsg({ text: 'i', mod: KeyMod.Ctrl | KeyMod.Shift, code: 73 });
+    const shiftI = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: 105 });
     app.update(shiftI);
 
     const source = 'test-source.md';
@@ -207,7 +207,7 @@ describe('studio ingest - submission', () => {
     const app = createApp(fixturePath);
     app.update(new WindowSizeMsg(120, 40));
 
-    const shiftI = new KeyPressMsg({ text: 'i', mod: KeyMod.Ctrl | KeyMod.Shift, code: 73 });
+    const shiftI = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: 105 });
     app.update(shiftI);
 
     // Submit with empty source
@@ -237,7 +237,7 @@ describe('studio ingest - view rendering', () => {
     app.update(new WindowSizeMsg(120, 40));
 
     // Switch to ingest
-    const shiftI = new KeyPressMsg({ text: 'i', mod: KeyMod.Ctrl | KeyMod.Shift, code: 73 });
+    const shiftI = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: 105 });
     app.update(shiftI);
 
     const view = app.view();
@@ -248,7 +248,7 @@ describe('studio ingest - view rendering', () => {
     const app = createApp(fixturePath);
     app.update(new WindowSizeMsg(120, 40));
 
-    const shiftI = new KeyPressMsg({ text: 'i', mod: KeyMod.Ctrl | KeyMod.Shift, code: 73 });
+    const shiftI = new KeyPressMsg({ text: '', mod: KeyMod.Ctrl | KeyMod.Shift, code: 105 });
     app.update(shiftI);
 
     const view = app.view();
