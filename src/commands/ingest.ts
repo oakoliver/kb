@@ -80,6 +80,15 @@ export async function ingest(ctx: CommandContext): Promise<number> {
     return 1;
   }
 
+  // One source per run: --title and the JSON result describe a single source
+  if (ctx.positionals.length > 1) {
+    outputError(
+      `kb ingest takes one source, got ${ctx.positionals.length}: ${ctx.positionals.join(', ')}. ` +
+        'Run kb ingest once per source.'
+    );
+    return 1;
+  }
+
   // Resolve wiki root
   let wikiRoot: { path: string };
   try {

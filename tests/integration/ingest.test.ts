@@ -153,4 +153,20 @@ describe('kb ingest', () => {
     const files = await $`ls ${wikiDir}/raw/articles/`.text();
     expect(files).toContain('.md');
   });
+
+  test('rejects more than one source instead of ignoring the rest', async () => {
+    const first = join(testDir, 'first.md');
+    const second = join(testDir, 'second.md');
+    await writeFile(first, '# First\n\nFirst article.');
+    await writeFile(second, '# Second\n\nSecond article.');
+
+    const result = await $`bun run ${CLI_PATH} ingest ${first} ${second}`.cwd(wikiDir).nothrow();
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout.toString() + result.stderr.toString()).toContain('takes one source, got 2');
+    // Nothing is ingested, so the user isn't left with half the files added
+    const manifest = Bun.file(join(wikiDir, 'raw', '_manifest.json'));
+    const entries = (await manifest.exists()) ? (await manifest.json()).entries : [];
+    expect(entries).toEqual([]);
+  });
 });
