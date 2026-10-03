@@ -14,12 +14,13 @@ import lint from './commands/lint';
 import status from './commands/status';
 import promote from './commands/promote';
 import studio from './commands/studio';
+import pkg from '../package.json';
 
 // =============================================================================
 // Version and Help
 // =============================================================================
 
-const VERSION = '0.1.0';
+const VERSION: string = pkg.version;
 
 const HELP = `
 ${styles.bold.render('kb')} - CLI tool for LLM-compiled knowledge bases
