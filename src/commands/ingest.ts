@@ -3,7 +3,8 @@
  * @module commands/ingest
  */
 
-import { resolve } from 'path';
+import { existsSync, statSync } from 'fs';
+import { join, resolve } from 'path';
 import { resolveWikiRoot, getWikiPaths } from '../core/resolver';
 import {
   loadManifest,
@@ -109,6 +110,22 @@ export async function ingest(ctx: CommandContext): Promise<number> {
 
   // Detect source kind
   const sourceKind = detectSourceKind(source);
+
+  // A local folder (e.g. a cloned repository) isn't a source; git repos are
+  // ingested by URL. Point at the README rather than reporting "not found".
+  if (sourceKind === 'file') {
+    const dirPath = resolve(source);
+    if (existsSync(dirPath) && statSync(dirPath).isDirectory()) {
+      const readme = ['README.md', 'readme.md', 'README'].map((name) => join(dirPath, name)).find(existsSync);
+      outputError(
+        `${dirPath} is a directory. kb ingest takes a URL, a file, or a git repository URL.`,
+        readme
+          ? `To add this folder's README, run: kb ingest ${readme}`
+          : 'Ingest the files inside it one at a time.'
+      );
+      return 1;
+    }
+  }
 
   // Start spinner for TTY mode
   const spinner = spin(`Ingesting ${source}...`);
