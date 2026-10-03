@@ -16,13 +16,15 @@ CLI tool for LLM-compiled knowledge bases.
 
 ## Install
 
-`kb` runs on [Bun](https://bun.sh) 1.0 or newer.
+`kb` runs on [Bun](https://bun.sh) 1.0 or newer: its code uses Bun's runtime APIs. Install Bun first (`curl -fsSL https://bun.sh/install | bash`), then install `kb` with either package manager:
 
 ```bash
 bun add -g @oakoliver/kb
 # or
-npm install -g @oakoliver/kb   # still needs bun on your PATH
+npm install -g @oakoliver/kb
 ```
+
+The `kb` command installed by npm is a small Node launcher that runs `kb` with Bun, and prints how to install Bun if it isn't on your `PATH`.
 
 `compile` and `query` call an LLM. Set one of:
 
@@ -32,6 +34,24 @@ export OPENAI_API_KEY="sk-..."          # GPT
 ```
 
 `init`, `ingest`, `find`, `lint`, `status` and `promote` work without a key.
+
+### Local models (LM Studio, Ollama, any OpenAI-compatible server)
+
+`compile` and `query` can also use a local model through the `lmstudio` provider, which talks to any OpenAI-compatible chat completions endpoint and needs no API key. Set it in the knowledge base's `.kb/config.json`:
+
+```json
+{
+  "version": 1,
+  "llm": {
+    "provider": "lmstudio",
+    "model": "qwen/qwen3.5-9b",
+    "baseUrl": "http://localhost:1234/v1"
+  },
+  "wiki": { "linkStyle": "wikilink" }
+}
+```
+
+`baseUrl` defaults to LM Studio's `http://localhost:1234/v1`; point it at another server, for example Ollama's `http://localhost:11434/v1`, and set `model` to a model that server has loaded. `baseUrl` is only used by the `lmstudio` provider; the `anthropic` and `openai` providers always call their official APIs.
 
 ## Quick start
 
@@ -56,7 +76,7 @@ kb query "How does attention work in transformers?"
 
 ### Keep the wiki healthy
 
-`kb lint` checks for broken wikilinks, orphan and stale articles, and invalid frontmatter. `kb lint --fix` removes `related:` entries that point to missing articles; broken links in an article's body are reported but never rewritten:
+`kb lint` checks for broken wikilinks, orphan and stale articles, and invalid frontmatter. `kb lint --fix` removes `related:` entries that point to missing articles (written as `[[Title]]`, as `kb compile` does, or as a plain title, as versions before 0.1.2 did); broken links in an article's body are reported but never rewritten:
 
 ![kb lint reporting a broken related entry and two broken body links, then kb lint --fix removing the related entry and still reporting the body links](https://raw.githubusercontent.com/oakoliver/kb/main/assets/lint.png)
 
@@ -114,7 +134,7 @@ It needs an interactive terminal of at least 80×24, and a [Nerd Font](https://w
 | Command | Description |
 |---------|-------------|
 | `kb init [path] [--global]` | Initialize a knowledge base (`--global` creates it at `~/.kb/`) |
-| `kb ingest <source> [--type article\|paper\|code] [--title <title>]` | Add a URL, file, PDF or git repo to `raw/` |
+| `kb ingest <source> [--type article\|paper\|code] [--title <title>]` | Add a URL, file, PDF or git repository URL to `raw/` (one source per run; a local folder is not a source, ingest its files) |
 | `kb compile [--full] [--dry-run]` | Compile changed sources into wiki articles (LLM) |
 | `kb find <query> [--limit <n>]` | BM25 keyword search over the wiki (default limit 10) |
 | `kb query <question> [--no-file]` | Answer a question from the wiki with sources (LLM); saved to `queries/` unless `--no-file` |
@@ -123,7 +143,7 @@ It needs an interactive terminal of at least 80×24, and a [Nerd Font](https://w
 | `kb promote <file> [--as concept\|entity\|synthesis]` | Move a saved query answer into the wiki |
 | `kb studio` | Open KB Studio, the interactive workspace |
 
-Global options: `--help`, `--version`, `--json` (force JSON output).
+Global options: `--help`, `--version`, `--json` (force JSON output, in any position: `kb find --json attention` works).
 
 ## Knowledge base layout
 
