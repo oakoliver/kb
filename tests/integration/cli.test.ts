@@ -51,3 +51,29 @@ describe('kb --json', () => {
     expect(wantsJsonOutput(['bun', 'kb', 'status'])).toBe(false);
   });
 });
+
+describe('kb launcher (package bin)', () => {
+  const BIN = join(import.meta.dir, '../../bin/kb.js');
+
+  test('runs kb with Bun when started by Node', async () => {
+    const result = await $`node ${BIN} --version`.nothrow().quiet();
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout.toString())).toEqual({ version: pkg.version });
+  });
+
+  test('explains how to install Bun when it is missing', async () => {
+    const { mkdtemp, rm, symlink } = await import('fs/promises');
+    const { tmpdir } = await import('os');
+    const binDir = await mkdtemp(join(tmpdir(), 'kb-nobun-'));
+    try {
+      // A PATH with node but no bun
+      await symlink(process.execPath.includes('bun') ? Bun.which('node')! : process.execPath, join(binDir, 'node'));
+      const result = await $`${join(binDir, 'node')} ${BIN} --version`.env({ PATH: binDir }).nothrow().quiet();
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr.toString()).toContain('kb runs on Bun');
+      expect(result.stderr.toString()).toContain('https://bun.sh');
+    } finally {
+      await rm(binDir, { recursive: true, force: true });
+    }
+  });
+});
