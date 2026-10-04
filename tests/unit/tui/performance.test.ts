@@ -26,6 +26,10 @@ import { renderStatusBar, renderHelpBar, getContextualHelp } from '../../../src/
 import { renderProblemsPanel } from '../../../src/tui/panels/problems';
 import { filterPaletteItems, commandsToPaletteItems } from '../../../src/tui/commands';
 
+// Wall-clock budgets are for a developer machine; shared CI runners are slower
+// and noisier, so they get 4x the budget there (GitHub Actions sets CI).
+const SLACK = process.env.CI ? 4 : 1;
+
 // =============================================================================
 // Helpers: Generate large synthetic data sets
 // =============================================================================
@@ -95,7 +99,7 @@ describe('Explorer tree performance', () => {
     const elapsed = performance.now() - start;
 
     expect(flat.length).toBe(50 + 50 * 100); // 50 dirs + 5000 files
-    expect(elapsed).toBeLessThan(50);
+    expect(elapsed).toBeLessThan(50 * SLACK);
   });
 
   test('getVisibleItems on large tree is fast', () => {
@@ -110,7 +114,7 @@ describe('Explorer tree performance', () => {
     const elapsed = performance.now() - start;
 
     expect(visible.length).toBe(5050);
-    expect(elapsed).toBeLessThan(50);
+    expect(elapsed).toBeLessThan(50 * SLACK);
   });
 
   test('renderExplorer with large tree completes under 100ms', () => {
@@ -125,7 +129,7 @@ describe('Explorer tree performance', () => {
     const elapsed = performance.now() - start;
 
     expect(rendered.length).toBeGreaterThan(0);
-    expect(elapsed).toBeLessThan(100);
+    expect(elapsed).toBeLessThan(100 * SLACK);
   });
 
   test('rapid selection navigation through large tree under 100ms for 100 moves', () => {
@@ -142,7 +146,7 @@ describe('Explorer tree performance', () => {
     const elapsed = performance.now() - start;
 
     expect(state.selectedIndex).toBe(100);
-    expect(elapsed).toBeLessThan(100);
+    expect(elapsed).toBeLessThan(100 * SLACK);
   });
 
   test('moveSelectionUp from middle of large tree is fast', () => {
@@ -159,7 +163,7 @@ describe('Explorer tree performance', () => {
     const elapsed = performance.now() - start;
 
     expect(state.selectedIndex).toBe(2400);
-    expect(elapsed).toBeLessThan(100);
+    expect(elapsed).toBeLessThan(100 * SLACK);
   });
 
   test('getSelectedItem on large tree under 10ms', () => {
@@ -174,7 +178,7 @@ describe('Explorer tree performance', () => {
     const elapsed = performance.now() - start;
 
     expect(item).not.toBeNull();
-    expect(elapsed).toBeLessThan(10);
+    expect(elapsed).toBeLessThan(10 * SLACK);
   });
 
   test('collapsed dirs in large tree reduce visible items correctly', () => {
@@ -210,7 +214,7 @@ describe('Search results performance', () => {
 
     expect(updated.results.length).toBe(500);
     expect(updated.isSearching).toBe(false);
-    expect(elapsed).toBeLessThan(10);
+    expect(elapsed).toBeLessThan(10 * SLACK);
   });
 
   test('renderSearchView with 500 results under 50ms', () => {
@@ -226,7 +230,7 @@ describe('Search results performance', () => {
     const elapsed = performance.now() - start;
 
     expect(rendered.length).toBeGreaterThan(0);
-    expect(elapsed).toBeLessThan(50);
+    expect(elapsed).toBeLessThan(50 * SLACK);
   });
 
   test('rapid navigation through 500 results under 50ms', () => {
@@ -244,7 +248,7 @@ describe('Search results performance', () => {
     const elapsed = performance.now() - start;
 
     expect(state.selectedIndex).toBe(200);
-    expect(elapsed).toBeLessThan(50);
+    expect(elapsed).toBeLessThan(50 * SLACK);
   });
 
   test('searchSelectUp from end of 500 results is fast', () => {
@@ -262,7 +266,7 @@ describe('Search results performance', () => {
     const elapsed = performance.now() - start;
 
     expect(state.selectedIndex).toBe(299);
-    expect(elapsed).toBeLessThan(50);
+    expect(elapsed).toBeLessThan(50 * SLACK);
   });
 
   test('getSelectedSearchResult at various indices is fast', () => {
@@ -279,7 +283,7 @@ describe('Search results performance', () => {
     }
     const elapsed = performance.now() - start;
 
-    expect(elapsed).toBeLessThan(50);
+    expect(elapsed).toBeLessThan(50 * SLACK);
   });
 });
 
@@ -300,7 +304,7 @@ describe('Layout calculation performance', () => {
     }
     const elapsed = performance.now() - start;
 
-    expect(elapsed).toBeLessThan(50);
+    expect(elapsed).toBeLessThan(50 * SLACK);
   });
 
   test('layout consistency across repeated calls', () => {
@@ -324,7 +328,7 @@ describe('Problems panel performance', () => {
     const elapsed = performance.now() - start;
 
     expect(rendered.length).toBeGreaterThan(0);
-    expect(elapsed).toBeLessThan(50);
+    expect(elapsed).toBeLessThan(50 * SLACK);
   });
 
   test('problems panel correctly limits visible items for large sets', () => {
@@ -362,7 +366,7 @@ describe('Chrome rendering performance', () => {
     }
     const elapsed = performance.now() - start;
 
-    expect(elapsed).toBeLessThan(500);
+    expect(elapsed).toBeLessThan(500 * SLACK);
   });
 
   test('renderHelpBar 1000 times under 500ms', () => {
@@ -372,7 +376,7 @@ describe('Chrome rendering performance', () => {
     }
     const elapsed = performance.now() - start;
 
-    expect(elapsed).toBeLessThan(500);
+    expect(elapsed).toBeLessThan(500 * SLACK);
   });
 
   test('getContextualHelp for all pane types is fast', () => {
@@ -386,7 +390,7 @@ describe('Chrome rendering performance', () => {
     }
     const elapsed = performance.now() - start;
 
-    expect(elapsed).toBeLessThan(50);
+    expect(elapsed).toBeLessThan(50 * SLACK);
   });
 });
 
@@ -404,7 +408,7 @@ describe('Command palette filtering performance', () => {
     }
     const elapsed = performance.now() - start;
 
-    expect(elapsed).toBeLessThan(20);
+    expect(elapsed).toBeLessThan(20 * SLACK);
   });
 
   test('filter with empty query returns all items', () => {
